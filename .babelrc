@@ -1,0 +1,4 @@
+{
+  "presets": ["@babel/preset-env", "power-assert"],
+  "plugins": ["babel-plugin-espower"]
+}

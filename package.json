@@ -1,0 +1,55 @@
+{
+  "name": "page-loader",
+  "version": "0.0.1",
+  "description": "Утилита для скачивания указанного адреса из сети",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "npm test --watch",
+    "build": "NODE_ENV=production babel src --out-dir dist --source-maps inline",
+    "prepublishOnly": "npm run build"
+  },
+  "bin": {
+    "page-loader": "dist/bin/page-loader.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DimaKabanov/page-loader.git"
+  },
+  "keywords": [
+    "loader",
+    "page-loader"
+  ],
+  "author": "Dmitry Kabanov",
+  "license": "ISC",
+  "jest": {
+    "testEnvironment": "node"
+  },
+  "homepage": "https://github.com/DimaKabanov/page-loader#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.4.4",
+    "@babel/core": "^7.4.5",
+    "@babel/node": "^7.4.5",
+    "@babel/preset-env": "^7.4.5",
+    "babel-eslint": "^10.0.1",
+    "babel-jest": "^24.8.0",
+    "babel-plugin-espower": "^3.0.1",
+    "babel-preset-power-assert": "^3.0.0",
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-babel": "^5.3.0",
+    "eslint-plugin-import": "^2.17.3",
+    "eslint-plugin-jest": "^22.6.4",
+    "eslint-plugin-lodash-fp": "^2.2.0-a1",
+    "gulp-babel": "^8.0.0",
+    "jest": "^24.8.0",
+    "jest-cli": "^24.8.0",
+    "nock": "^10.0.6",
+    "power-assert": "^1.6.1"
+  },
+  "dependencies": {
+    "axios": "^0.19.0",
+    "commander": "^2.20.0",
+    "lodash": "^4.17.11"
+  }
+}
