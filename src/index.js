@@ -1,3 +1,6 @@
-import half from './half';
+const pageLoader = (pathToPage, outputFolderPath) => {
+  console.log(pathToPage);
+  console.log(outputFolderPath);
+};
 
-export default half;
+export default pageLoader;
