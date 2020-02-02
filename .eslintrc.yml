@@ -16,3 +16,7 @@
 
   rules:
     no-console: 0
+    jest/expect-expect:
+      - error
+      - assertFunctionNames:
+        - assert.strictEqual
