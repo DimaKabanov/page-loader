@@ -1,4 +1,7 @@
 {
   "presets": ["@babel/preset-env", "power-assert"],
-  "plugins": ["babel-plugin-espower"]
+  "plugins": [
+    "babel-plugin-espower",
+    ["@babel/plugin-proposal-pipeline-operator", { "proposal": "smart" }]
+  ]
 }
