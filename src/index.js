@@ -1,5 +1,5 @@
 import url from 'url';
-import _ from 'lodash';
+import _ from 'lodash/fp';
 import axios from 'axios';
 import cheerio from 'cheerio';
 import { promises as fs } from 'fs';
@@ -40,6 +40,7 @@ const pageLoader = (pageUrl, outputPath = process.cwd()) => {
   return axios.get(pageUrl)
     .then(({ data }) => {
       const localResourcesLinks = getLocalResourcesLinks(data);
+      console.log(localResourcesLinks);
       return fs.writeFile(destinationPath, data);
     });
 };
