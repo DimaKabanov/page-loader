@@ -25,12 +25,22 @@ beforeEach(async () => {
 test('Correctly downloads the page at the specified address', async () => {
   const htmlBeforeSrc = getFixturePath('index-before.html');
   const htmlAfterSrc = getFixturePath('index-after.html');
+  const scriptsSrc = getFixturePath('index.js');
+  const stylesSrc = getFixturePath('styles.css');
 
   const htmlBeforeData = await fs.readFile(htmlBeforeSrc, 'utf-8');
   const htmlAfterData = await fs.readFile(htmlAfterSrc, 'utf-8');
+  const scriptsData = await fs.readFile(scriptsSrc, 'utf-8');
+  const stylesData = await fs.readFile(stylesSrc, 'utf-8');
 
   const outputHtmlFile = path.join(outputDir, 'hexlet-io-courses.html');
-  nock(host).get(pageUrl).reply(200, htmlBeforeData);
+  nock(host)
+    .get(pageUrl)
+    .reply(200, htmlBeforeData)
+    .get(scriptsUrl)
+    .reply(200, scriptsData)
+    .get(stylesUrl)
+    .reply(200, stylesData);
   await pageLoader(`${host}${pageUrl}`, outputDir);
 
   const actualPage = await fs.readFile(outputHtmlFile, 'utf-8');
@@ -50,9 +60,13 @@ test('Correctly downloads the local resourses', async () => {
   const outputScriptsFile = path.join(outputDir, 'hexlet-io-courses_files', 'assets-index.js');
   const outputStylesFile = path.join(outputDir, 'hexlet-io-courses_files', 'assets-css-styles.css');
 
-  nock(host).get(pageUrl).reply(200, htmlBeforeData);
-  nock(host).get(scriptsUrl).reply(200, scriptsData);
-  nock(host).get(stylesUrl).reply(200, stylesData);
+  nock(host)
+    .get(pageUrl)
+    .reply(200, htmlBeforeData)
+    .get(scriptsUrl)
+    .reply(200, scriptsData)
+    .get(stylesUrl)
+    .reply(200, stylesData);
 
   await pageLoader(`${host}${pageUrl}`, outputDir);
 
