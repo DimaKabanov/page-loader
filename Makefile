@@ -6,10 +6,10 @@ build:
 	npm run build
 
 test:
-	npx jest
+	DEBUG=page-loader npx jest
 
 test-watch:
-	npx jest --watch
+	DEBUG=page-loader,axios,nock npx jest --watch
 
 lint:
 	npx eslint .
