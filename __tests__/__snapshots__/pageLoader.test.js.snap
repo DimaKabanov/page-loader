@@ -1,0 +1,5 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Correctly error message when reply 500 1`] = `"Request failed with status code 500"`;
+
+exports[`Correctly error message when wrong output path 1`] = `"ENOENT: no such file or directory, open 'wrong/hexlet-io-courses.html'"`;

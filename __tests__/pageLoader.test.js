@@ -39,6 +39,12 @@ beforeEach(async () => {
   scriptsData = await fs.readFile(scriptsSrc, 'utf-8');
   stylesData = await fs.readFile(stylesSrc, 'utf-8');
   imgData = await fs.readFile(imgSrc, 'utf-8');
+});
+
+test('Correctly downloads index page', async () => {
+  const htmlAfterSrc = getFixturePath('index-after.html');
+  const htmlAfterData = await fs.readFile(htmlAfterSrc, 'utf-8');
+  const outputHtmlFile = path.join(outputDir, 'hexlet-io-courses.html');
 
   nock(host)
     .log(log)
@@ -50,12 +56,6 @@ beforeEach(async () => {
     .reply(200, stylesData)
     .get(imgUrl)
     .reply(200, imgData);
-});
-
-test('Correctly downloads index page', async () => {
-  const htmlAfterSrc = getFixturePath('index-after.html');
-  const htmlAfterData = await fs.readFile(htmlAfterSrc, 'utf-8');
-  const outputHtmlFile = path.join(outputDir, 'hexlet-io-courses.html');
 
   await pageLoader(`${host}${pageUrl}`, outputDir);
 
@@ -68,6 +68,17 @@ test('Correctly downloads local resourses', async () => {
   const outputScriptsFile = path.join(outputDir, 'hexlet-io-courses_files', 'assets-index.js');
   const outputStylesFile = path.join(outputDir, 'hexlet-io-courses_files', 'assets-css-styles.css');
   const outputImgFile = path.join(outputDir, 'hexlet-io-courses_files', 'card.png');
+
+  nock(host)
+    .log(log)
+    .get(pageUrl)
+    .reply(200, htmlBeforeData)
+    .get(scriptsUrl)
+    .reply(200, scriptsData)
+    .get(stylesUrl)
+    .reply(200, stylesData)
+    .get(imgUrl)
+    .reply(200, imgData);
 
   await pageLoader(`${host}${pageUrl}`, outputDir);
 
@@ -85,7 +96,36 @@ test('Correctly downloads local resourses', async () => {
 });
 
 test('Correctly error message when wrong output path', async () => {
+  nock(host)
+    .log(log)
+    .get(pageUrl)
+    .reply(200, htmlBeforeData)
+    .get(scriptsUrl)
+    .reply(200, scriptsData)
+    .get(stylesUrl)
+    .reply(200, stylesData)
+    .get(imgUrl)
+    .reply(200, imgData);
+
   const wrongOutputDir = 'wrong';
   const expecteErrorMessage = 'no such file or directory';
-  await expect(pageLoader(`${host}${pageUrl}`, wrongOutputDir)).rejects.toThrow(expecteErrorMessage);
+  await expect(pageLoader(`${host}${pageUrl}`, wrongOutputDir)).rejects.toThrowErrorMatchingSnapshot();
+});
+
+test('Correctly error message when reply 404', async () => {
+  nock(host)
+    .log(log)
+    .get(pageUrl)
+    .reply(404);
+  const expecteErrorMessage = 'Request failed with status code 404';
+  await expect(pageLoader(`${host}${pageUrl}`)).rejects.toThrow(expecteErrorMessage);
+});
+
+test('Correctly error message when reply 500', async () => {
+  nock(host)
+    .log(log)
+    .get(pageUrl)
+    .reply(500);
+
+  await expect(pageLoader(`${host}${pageUrl}`)).rejects.toThrowErrorMatchingSnapshot();
 });
