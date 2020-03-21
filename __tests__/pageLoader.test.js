@@ -108,7 +108,6 @@ test('Correctly error message when wrong output path', async () => {
     .reply(200, imgData);
 
   const wrongOutputDir = 'wrong';
-  const expecteErrorMessage = 'no such file or directory';
   await expect(pageLoader(`${host}${pageUrl}`, wrongOutputDir)).rejects.toThrowErrorMatchingSnapshot();
 });
 

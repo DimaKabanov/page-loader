@@ -6,7 +6,7 @@ build:
 	npm run build
 
 test:
-	DEBUG=page-loader npx jest
+	DEBUG=page-loader,axios,nock npx jest
 
 test-watch:
 	DEBUG=page-loader,axios,nock npx jest --watch

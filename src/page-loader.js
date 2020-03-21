@@ -25,7 +25,7 @@ const tags = [
 
 const log = debug('page-loader');
 
-const updateLink = (link) => {
+const replaceDelimetrInLink = (link) => {
   const updatedLink = link
     |> url.parse
     |> (({ hostname, pathname }) => url.format({ hostname, pathname }))
@@ -37,12 +37,12 @@ const updateLink = (link) => {
 
 const makeAssetFileName = (link) => {
   const { dir, base } = path.parse(link);
-  const updatedLocalLink = updateLink(dir);
+  const updatedLocalLink = replaceDelimetrInLink(dir);
   const assetsFileName = _.trim(`${updatedLocalLink}-${base}`, '-');
   return assetsFileName;
 };
 
-const updateHtml = (html, assetsDirName) => {
+const replaceAssetLinksInHTML = (html, assetsDirName) => {
   const dom = cheerio.load(html);
   tags.forEach(({ selector, attr }) => {
     dom(selector).each((i, tag) => {
@@ -56,7 +56,7 @@ const updateHtml = (html, assetsDirName) => {
   return dom.html();
 };
 
-const getAssetLinks = (html, pageUrl) => {
+const getAssetLinksFromHTML = (html, pageUrl) => {
   const dom = cheerio.load(html);
   const assetLinks = tags.map(({ selector, attr }) => (
     dom(selector).map((i, tag) => {
@@ -70,7 +70,13 @@ const getAssetLinks = (html, pageUrl) => {
 };
 
 export default (pageUrl, outputPath = process.cwd()) => {
-  const updatedPageUrl = updateLink(pageUrl);
+  const { protocol, hostname } = url.parse(pageUrl);
+  if (!protocol && !hostname) {
+    const message = `Invalid url ${pageUrl}`;
+    throw new Error(message);
+  }
+
+  const updatedPageUrl = replaceDelimetrInLink(pageUrl);
   const indexFileName = `${updatedPageUrl}.html`;
   const assetsDirName = `${updatedPageUrl}_files`;
   const indexPageFullPath = path.join(outputPath, indexFileName);
@@ -81,7 +87,7 @@ export default (pageUrl, outputPath = process.cwd()) => {
   let assetPromises = [];
 
   const getAssetPromises = () => {
-    assetLinks = getAssetLinks(html, pageUrl);
+    assetLinks = getAssetLinksFromHTML(html, pageUrl);
     const assetTasks = new Listr(assetLinks.map(({ fullLink }) => ({
       title: `Download - ${fullLink.toString()}`,
       task: () => {
@@ -105,7 +111,7 @@ export default (pageUrl, outputPath = process.cwd()) => {
   return axios.get(pageUrl)
     .then((response) => { html = response.data; })
     .then(() => log('Download HTML file by path', pageUrl))
-    .then(() => fs.writeFile(indexPageFullPath, updateHtml(html, assetsDirName)))
+    .then(() => fs.writeFile(indexPageFullPath, replaceAssetLinksInHTML(html, assetsDirName)))
     .then(() => log('Write new HTML file by path', indexPageFullPath))
     .then(() => fs.mkdir(assetsDirFullPath))
     .then(() => log('Create assets folder by path', assetsDirFullPath))
