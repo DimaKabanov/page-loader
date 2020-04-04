@@ -1,5 +1,5 @@
 import { promises as fs } from 'fs';
-import url, { URL } from 'url';
+import { URL } from 'url';
 import path from 'path';
 import _ from 'lodash';
 import 'axios-debug-log';
@@ -8,32 +8,15 @@ import cheerio from 'cheerio';
 import debug from 'debug';
 import Listr from 'listr';
 
-const tags = [
-  {
-    selector: 'link[href]:not([href*="//"])',
-    attr: 'href',
-  },
-  {
-    selector: 'img[src]:not([src*="//"])',
-    attr: 'src',
-  },
-  {
-    selector: 'script[src]:not([src*="//"])',
-    attr: 'src',
-  },
-];
+const tags = {
+  link: 'href',
+  img: 'src',
+  script: 'src',
+};
 
 const log = debug('page-loader');
 
-const replaceDelimetrInLink = (link) => {
-  const updatedLink = link
-    |> url.parse
-    |> (({ hostname, pathname }) => url.format({ hostname, pathname }))
-    |> _.words
-    |> ((words) => words.join('-'));
-
-  return updatedLink;
-};
+const replaceDelimetrInLink = (link) => link |> _.words |> ((words) => words.join('-'));
 
 const makeAssetFileName = (link) => {
   const { dir, base } = path.parse(link);
@@ -42,15 +25,26 @@ const makeAssetFileName = (link) => {
   return assetsFileName;
 };
 
+const isLocalLink = (link) => {
+  const domainName = 'https://example.ru';
+  const absoluteUrl = new URL(domainName);
+  const verifiableUrl = new URL(link, domainName);
+  const isLocal = verifiableUrl.hostname === absoluteUrl.hostname;
+
+  return isLocal;
+};
+
 const replaceAssetLinksInHTML = (html, assetsDirName) => {
   const dom = cheerio.load(html);
-  tags.forEach(({ selector, attr }) => {
-    dom(selector).each((i, tag) => {
-      const assetLink = dom(tag).attr(attr);
-      const assetsFileName = makeAssetFileName(assetLink);
-      const assetsFullPath = path.join(assetsDirName, assetsFileName);
-      dom(tag).attr(attr, assetsFullPath);
-    });
+  Object.entries(tags).forEach(([tagName, attr]) => {
+    dom(tagName)
+      .filter((i, tag) => isLocalLink(dom(tag).attr(attr)))
+      .each((i, tag) => {
+        const assetLink = dom(tag).attr(attr);
+        const assetsFileName = makeAssetFileName(assetLink);
+        const assetsFullPath = path.join(assetsDirName, assetsFileName);
+        dom(tag).attr(attr, assetsFullPath);
+      });
   });
 
   return dom.html();
@@ -58,25 +52,28 @@ const replaceAssetLinksInHTML = (html, assetsDirName) => {
 
 const getAssetLinksFromHTML = (html, pageUrl) => {
   const dom = cheerio.load(html);
-  const assetLinks = tags.map(({ selector, attr }) => (
-    dom(selector).map((i, tag) => {
-      const localLink = dom(tag).attr(attr);
-      const fullLink = new URL(localLink, pageUrl);
-      return { localLink, fullLink };
-    }).get()
+  const assetLinks = Object.entries(tags).map(([tagName, attr]) => (
+    dom(tagName)
+      .filter((i, tag) => {
+        const assetLink = dom(tag).attr(attr);
+        return isLocalLink(assetLink);
+      })
+      .map((i, tag) => {
+        const localLink = dom(tag).attr(attr);
+        const fullLink = new URL(localLink, pageUrl);
+        return { localLink, fullLink };
+      })
+      .get()
   )).flat();
 
   return assetLinks;
 };
 
 export default (pageUrl, outputPath = process.cwd()) => {
-  const { protocol, hostname } = url.parse(pageUrl);
-  if (!protocol && !hostname) {
-    const message = `Invalid url ${pageUrl}`;
-    throw new Error(message);
-  }
+  const updatedPageUrl = new URL(pageUrl)
+    |> (({ hostname, pathname }) => path.join(hostname, pathname))
+    |> replaceDelimetrInLink;
 
-  const updatedPageUrl = replaceDelimetrInLink(pageUrl);
   const indexFileName = `${updatedPageUrl}.html`;
   const assetsDirName = `${updatedPageUrl}_files`;
   const indexPageFullPath = path.join(outputPath, indexFileName);
