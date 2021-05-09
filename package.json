@@ -62,7 +62,7 @@
     "debug": "^4.1.1",
     "errno": "^0.1.7",
     "listr": "^0.14.3",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "regenerator-runtime": "^0.13.3"
   }
 }
